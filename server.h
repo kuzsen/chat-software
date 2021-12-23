@@ -4,8 +4,8 @@
 
 #include<iostream>
 #include <string.h>
-#include <event.h>
-#include<event2/listener.h>	// evconnlistener	和	evconnlistener_new_bind 的头文件
+#include <event.h>			//使用ls /usr/include/命令查看
+#include<event2/listener.h>	// evconnlistener	和	evconnlistener_new_bind 的头文件，使用ls /usr/include/event2/查看
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -24,7 +24,7 @@ private:
 
 
 private: // 静态成员函数
-	//static void listener_cb(struct evconnlistener* listener, evutil_socket_t fd, struct sockaddr* addr, int socklen, void* arg);
+	static void listener_cb(struct evconnlistener* listener, evutil_socket_t fd, struct sockaddr* addr, int socklen, void* arg);
 	//static void client_handler(int);
 
 

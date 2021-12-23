@@ -34,6 +34,12 @@ Server::Server(const char *ip, int port)
 	
 }
 
+void Server::listener_cb (struct evconnlistener* listener, evutil_socket_t fd, struct sockaddr *addr, int socklen, void *arg)
+{
+	cout << "接受客户端的连接，fd = " << fd << endl;
+
+};
+
 Server::~Server()
 {
 	//event_base_free(base);           //最终释放集合，否则容易造成内存泄露
