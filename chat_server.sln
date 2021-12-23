@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chat_server", "chat_server.vcxproj", "{376D12C2-B058-4FDA-93B9-2C2F81C440AB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|ARM = Release|ARM
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|ARM.ActiveCfg = Debug|ARM
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|ARM.Build.0 = Debug|ARM
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|ARM.Deploy.0 = Debug|ARM
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|ARM64.Build.0 = Debug|ARM64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|x64.ActiveCfg = Debug|x64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|x64.Build.0 = Debug|x64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|x64.Deploy.0 = Debug|x64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|x86.ActiveCfg = Debug|x86
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|x86.Build.0 = Debug|x86
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Debug|x86.Deploy.0 = Debug|x86
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|ARM.ActiveCfg = Release|ARM
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|ARM.Build.0 = Release|ARM
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|ARM.Deploy.0 = Release|ARM
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|ARM64.ActiveCfg = Release|ARM64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|ARM64.Build.0 = Release|ARM64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|ARM64.Deploy.0 = Release|ARM64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|x64.ActiveCfg = Release|x64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|x64.Build.0 = Release|x64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|x64.Deploy.0 = Release|x64
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|x86.ActiveCfg = Release|x86
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|x86.Build.0 = Release|x86
+		{376D12C2-B058-4FDA-93B9-2C2F81C440AB}.Release|x86.Deploy.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EA6647A8-C091-45F0-8AFF-D0632C712335}
+	EndGlobalSection
+EndGlobal
