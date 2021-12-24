@@ -6,15 +6,21 @@
 #include <string.h>
 #include <event.h>			//使用ls /usr/include/命令查看
 #include<event2/listener.h>	// evconnlistener	和	evconnlistener_new_bind 的头文件，使用ls /usr/include/event2/查看
+#include<thread>
+#include <jsoncpp/json/json.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>	// inet_addr函数的头文件
 
+#include <unistd.h>//这两个还没用到
+#include "chatlist.h"
 using namespace std;
 
 #define IP     "172.19.18.114"
 #define PORT   8000
+
+#define MAXSIZE  1024 * 1024
 
 class Server
 {
@@ -22,11 +28,29 @@ private:
 	struct event_base* base;          //事件集合
 	struct evconnlistener* listener;    //监听事件
 
+	static ChatInfo* chatlist;                //链表对象（含有两个链表）
+	static ChatDataBase* chatdb;              //创建一个数据库对象，比如注册等功能时，需要访问user数据库，会用到  
+
 
 private: // 静态成员函数
 	static void listener_cb(struct evconnlistener* listener, evutil_socket_t fd, struct sockaddr* addr, int socklen, void* arg);
-	//static void client_handler(int);
+	static void client_handler(int);
+	static void read_cb(struct bufferevent* bev, void* ctx);
+	static void event_cb(struct bufferevent* bev, short what, void* ctx);
 
+	static void send_file_handler(int, int, int*, int*);
+
+
+	static void server_register(struct bufferevent* bev, Json::Value val);
+	static void server_login(struct bufferevent* bev, Json::Value val);
+	static void server_add_friend(struct bufferevent* bev, Json::Value val);
+	static void server_create_group(struct bufferevent* bev, Json::Value val);
+	static void server_add_group(struct bufferevent* bev, Json::Value val);
+	static void server_private_chat(struct bufferevent* bev, Json::Value val);
+	static void server_group_chat(struct bufferevent* bev, Json::Value val);
+	static void server_get_group_member(struct bufferevent* bev, Json::Value val);
+	static void server_user_offline(struct bufferevent* bev, Json::Value val);
+	static void server_send_file(struct bufferevent* bev, Json::Value val);
 
 public:
 	Server(const char *ip = "127.0.0.1", int port = 8000); // 有参构造函数

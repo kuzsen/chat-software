@@ -75,10 +75,14 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="chatlist.cpp" />
+    <ClCompile Include="chat_database.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="server.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="chatlist.h" />
+    <ClInclude Include="chat_database.h" />
     <ClInclude Include="server.h" />
   </ItemGroup>
   <ItemDefinitionGroup />
