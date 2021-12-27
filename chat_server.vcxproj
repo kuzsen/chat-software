@@ -79,6 +79,7 @@
     <ClCompile Include="chat_database.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="server.cpp" />
+    <ClCompile Include="测试客户端.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chatlist.h" />

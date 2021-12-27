@@ -61,7 +61,7 @@ void Server::client_handler(int fd)
 	event_base_dispatch(base);    //监听集合（监听客户端是否有数据发送过来），程序卡在这里，当客户端退出，则往下进行
 
 	event_base_free(base);
-	cout << "线程退出、释放集合" << endl;
+	cout << "线程退出、释放集合" << endl; // 某一连接的客户端断开时，打印此行
 }
 void Server::read_cb(struct bufferevent* bev, void* ctx)	// 从客户端读取数据回调函数
 {
@@ -72,7 +72,7 @@ void Server::read_cb(struct bufferevent* bev, void* ctx)	// 从客户端读取数据回调
 		cout << "bufferevent_read error" << endl;
 	}
 
-	cout << buf << endl;
+	cout << buf << endl; // 在服务器中打印客户端发过来的消息，可以帮助我们调试，理解逻辑关系
 
 	/*https://www.sojson.com/json/json_what.html             
 	Json详解，本身是一种{键值对}的字符串，的数据形式/结构，用于数据传输*/
