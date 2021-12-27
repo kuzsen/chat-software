@@ -32,7 +32,8 @@ private:
 	static ChatDataBase* chatdb;              //创建一个数据库对象，比如注册等功能时，需要访问user数据库，会用到  
 
 
-private: // 静态成员函数
+private: // 静态成员函数，静态函数由类名(::)(或对象名.)调用,但静态函数不传递this指针,不识别对象个体,所以通常用来对类的静态数据成员操作
+	/*类的静态成员(变量和方法)属于类本身，在类加载的时候就会分配内存，可以通过类名直接去访问；非静态成员（变量和方法）属于类的对象，所以只有在类的对象产生（创建类的实例）时才会分配内存，然后通过类的对象（实例）去访问。*/
 	static void listener_cb(struct evconnlistener* listener, evutil_socket_t fd, struct sockaddr* addr, int socklen, void* arg);
 	static void client_handler(int);
 	static void read_cb(struct bufferevent* bev, void* ctx);

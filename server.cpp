@@ -29,7 +29,7 @@ Server::Server(const char *ip, int port)
 	}
 
 	cout << "服务器初始化成功 开始监听客户端" << endl;
-	event_base_dispatch(base);       //监听集合————循环
+	event_base_dispatch(base);       //监听集合————循环。
 	//cout << "测试VS2019远程连接我的阿里云服务器，调试linux中的程序" << endl;
 	
 }
@@ -58,7 +58,7 @@ void Server::client_handler(int fd)
 	//使能回调函数
 	bufferevent_enable(bev, EV_READ);
 
-	event_base_dispatch(base);    //监听集合（监听客户端是否有数据发送过来）
+	event_base_dispatch(base);    //监听集合（监听客户端是否有数据发送过来），程序卡在这里，当客户端退出，则往下进行
 
 	event_base_free(base);
 	cout << "线程退出、释放集合" << endl;
@@ -87,7 +87,7 @@ void Server::read_cb(struct bufferevent* bev, void* ctx)	// 从客户端读取数据回调
 		cout << "服务器解析数据失败" << endl;
 	}
 
-	string cmd = val["cmd"].asString();//将json格式直接转为字符串，便于使用
+	string cmd = val["cmd"].asString();//asString()函数将json格式直接转为字符串，便于使用
 
 	if (cmd == "register")   //注册功能
 	{
@@ -141,9 +141,9 @@ Server::~Server()
 	event_base_free(base);           //最终释放集合，否则容易造成内存泄露
 }
 
-void Server::server_register(struct bufferevent* bev, Json::Value val)
+void Server::server_register(struct bufferevent* bev, Json::Value val) // 接下来判断当前注册的用户是否已经在user数据库中，若不存在，需要加进去
 {
-	chatdb->my_database_connect("user"); //首先连接上user数据库，接下来判断当前注册的用户是否已经在user数据库中，若不存在，需要加进去
+	chatdb->my_database_connect("user"); //首先连接上user数据库,相当于初始化静态成员
 
 	if (chatdb->my_database_user_exist(val["user"].asString()))   //用户存在
 	{
