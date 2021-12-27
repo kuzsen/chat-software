@@ -1,0 +1,11 @@
+1、注册
+客户端发送：{"cmd":"register","user":"小明","password":"11111"};
+成功服务器返回：{"cmd":"register_reply","result":"success"};
+失败服务器返回：{"cmd":"register_reply","result":"failure"};
+
+2、登录
+客户端发送：{"cmd":"login","user":"小明","password":"11111"};
+登录失败，服务器回复 {"cmd":"login_reply","result":"user_not_exist"};
+登录失败，服务器回复 {"cmd":"login_reply","result":"password_error"};
+登录成功，服务器回复 {"cmd":"login_reply","result":"success","friend":"小李","group":"群"};
+登录成功，回复好友上线提醒 {"cmd":"friend_login", "friend":"小李"};

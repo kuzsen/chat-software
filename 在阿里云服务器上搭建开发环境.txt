@@ -1,0 +1,51 @@
+liunx系统为Ubuntu，修改主机名iZ2vc5mxaf6rjabll9dmt2Z为liuzhensen————主要是为了看着舒服
+	root@iZ2vc5mxaf6rjabll9dmt2Z:~# hostnamectl set-hostname liuzhensen
+阿里云服务器公网ip
+	47.108.225.245
+设置安全组
+	自定义TCP，端口范围1/65535，源0.0.0.0/0——所有主机都可访问
+将服务器源码chat_server.tar.gz上传到阿里云服务器上测试
+	apt-get update	更新已安装得软件
+	apt install lrzsz	lrzsz在windows和linux之间传输文件
+	直接将本地文件拖入到Xshell窗口中，先cd到想到保存的文件中
+	或者使用下载FileZille客户端——先连接阿里云服务器，可视化Linux文件目录，将本地文件直接拖入到FileZille
+解压缩源码
+	tar -xzf chat_server.tar.gz    得到解压文件夹chat_sever
+安装mysql数据库
+	//apt-get update	更新已安装得软件
+	apt-get install mysql-client mysql-server libmysqlclient-dev			
+	//可能提示输入密码mysql密码，建议设置为root
+	密码默认为root
+安装libevent
+	apt-get install libevent-dev
+传输数据使用json格式
+	apt-get install libjsoncpp-dev
+在chat_server中建立两个数据库
+	mysql -u root -p
+	提示mysql登录输入密码，前面已经设置为root
+	create database chatgroup;
+	create database user;
+	quit或者exit退出数据库
+查看阿里云服务器内网地址
+	ifconfig
+	inet addr:后面得地址	172.19.18.114
+打开server.h文件，修改内网地址定义
+	vim server.h
+测试之前，把原来得编译文件main删除掉
+	rm -rf main
+编译，会生成编译文件main
+	make
+运行
+	./main
+显示：      初始化链表成功
+	服务器初始化成功 开始监听客户端
+以上服务器配置完毕——————————————————————————————
+
+将qt-source放到无中文路径下
+删除qt-source中原来的配置文件chat_soft.pro.user
+打开qt工程文件chat_soft.pro，修改阿里云服务器的公网地址————47.108.225.245
+	widget.cpp 中第10行
+	recvthread.cpp 中第23行
+	sendthread.cpp 中的第13行
+运行qt项目
+	若服务器显示接受客户端连接，则成功
