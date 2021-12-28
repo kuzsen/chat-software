@@ -238,7 +238,7 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		if (-1 == end)
 		{
 			name = friend_list.substr(start, friend_list.size() - start);
-			flag = 0;
+			flag = 0;//遍历完最后一个好友，退出循环
 		}
 		else
 		{
@@ -248,13 +248,13 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		for (list<User>::iterator it = chatlist->online_user->begin();
 			it != chatlist->online_user->end(); it++)
 		{
-			if (name == it->name)
+			if (name == it->name) // 判断好友是否在线，如果在线，向好友it->name发送，自己的上线提醒
 			{
 				v.clear();
 				v["cmd"] = "friend_login";
-				v["friend"] = val["user"];
+				v["friend"] = val["user"]; // 登录用户user是别人的好友
 				s = Json::FastWriter().write(v);
-				if (bufferevent_write(it->bev, s.c_str(), strlen(s.c_str())) < 0)
+				if (bufferevent_write(it->bev, s.c_str(), strlen(s.c_str())) < 0)   // 发给该登录用户的所有在线好友
 				{
 					cout << "bufferevent_write" << endl;
 				}

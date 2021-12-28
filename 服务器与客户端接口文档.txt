@@ -8,4 +8,4 @@
 登录失败，服务器回复 {"cmd":"login_reply","result":"user_not_exist"};
 登录失败，服务器回复 {"cmd":"login_reply","result":"password_error"};
 登录成功，服务器回复 {"cmd":"login_reply","result":"success","friend":"小李","group":"群"};
-登录成功，回复好友上线提醒 {"cmd":"friend_login", "friend":"小李"};
+登录成功，回复好友上线提醒 {"cmd":"friend_login", "friend":"小明"}; // 只发送给登录用户“小明”的在线好友，自己上线了
