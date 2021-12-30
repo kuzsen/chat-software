@@ -221,7 +221,8 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 	chatdb->my_database_get_friend_group(val["user"].asString(), friend_list, group_list);
 
 	v["cmd"] = "login_reply";
-	v["currentLoginUser"] = val["user"].asString(); // lzs——登录成功后，将当前登录用户名也返回给客户端，便于客户端实现用户登录后，将用户名设置为用户界面标题
+	// v["currentLoginUser"] = val["user"].asString(); // lzs——登录成功后，，便于客户端实现用户登录后，将用户名设置为用户界面标题
+	// 也可以从qt客户端，widge窗口登录输入的用户名，再传递给用户的聊天界面，后面的添加好友，创建群聊（群主和群成员都是当前用户）等都用的到
 	v["result"] = "success";
 	v["friend"] = friend_list;
 	v["group"] = group_list;
