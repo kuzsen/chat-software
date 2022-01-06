@@ -269,31 +269,32 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 }
 
 void  Server::server_add_friend(struct bufferevent* bev, Json::Value val)
+// 客户端发送：{"cmd":"add", "user":"小明", "friend":"小华"};
 {
 	Json::Value v;
 	string s;
 
 	chatdb->my_database_connect("user");
 
-	if (!chatdb->my_database_user_exist(val["friend"].asString()))   //添加的好友不存在
+	if (!chatdb->my_database_user_exist(val["friend"].asString()))   //添加的好友friend不存在
 	{
 		v["cmd"] = "add_reply";
-		v["result"] = "user_not_exist";
+		v["result"] = "user_not_exist"; // 回复客户端
 
 		s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return;
+		return; // 至此，添加好友操作结束
 	}
+	
 
-
-	if (chatdb->my_database_is_friend(val["user"].asString(), val["friend"].asString()))
+	if (chatdb->my_database_is_friend(val["user"].asString(), val["friend"].asString())) // 是否已经是好友
 	{
 		v.clear();
 		v["cmd"] = "add_reply";
-		v["result"] = "already_friend";
+		v["result"] = "already_friend"; // 回复客户端
 
 		s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)

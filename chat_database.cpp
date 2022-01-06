@@ -77,7 +77,7 @@ void ChatDataBase::my_database_disconnect()
 	mysql_close(mysql);
 }
 
-bool ChatDataBase::my_database_user_exist(string name) // 用户注册时，需要检查该用户是否已经在user数据库中
+bool ChatDataBase::my_database_user_exist(string name) // 用户注册时，需要检查该用户是否已经在user数据库中，user数据库已经在server.cpp中注册用户，添加好友等函数中打开
 {	/*user数据库中，为一个用户创建一张表table，表名就是用户名，表中的信息包括密码password，好友friend（字符串），所加的群聊group*/
 
 	char sql[128] = { 0 };
@@ -172,10 +172,10 @@ void ChatDataBase::my_database_get_friend_group(string name, string& f, string& 
 	}
 }
 
-bool ChatDataBase::my_database_is_friend(string n1, string n2)
+bool ChatDataBase::my_database_is_friend(string n1, string n2) // 判断用户2是否用户2的好友
 {
 	char sql[128] = { 0 };
-	sprintf(sql, "select friend from %s;", n1.c_str());
+	sprintf(sql, "select friend from %s;", n1.c_str()); // 使用n1表，查n1的friend字符串中是否有n2，反之也可
 	if (mysql_query(mysql, sql) != 0)
 	{
 		cout << "mysql_query error" << endl;
@@ -183,7 +183,7 @@ bool ChatDataBase::my_database_is_friend(string n1, string n2)
 
 	MYSQL_RES* res = mysql_store_result(mysql);
 	MYSQL_ROW row = mysql_fetch_row(res);
-	if (NULL == row[0])
+	if (NULL == row[0]) // n1好友为空NULL
 	{
 		return false;
 	}
@@ -215,7 +215,7 @@ bool ChatDataBase::my_database_is_friend(string n1, string n2)
 	return false;
 }
 
-void ChatDataBase::my_database_add_new_friend(string n1, string n2)
+void ChatDataBase::my_database_add_new_friend(string n1, string n2) // 将用户n2加入到用户n1表的friend字符串中
 {
 	char sql[1024] = { 0 };
 	sprintf(sql, "select friend from %s;", n1.c_str());
@@ -233,12 +233,12 @@ void ChatDataBase::my_database_add_new_friend(string n1, string n2)
 	else
 	{
 		friend_list.append(row[0]);
-		friend_list += "|";
+		friend_list += "|"; // 与原来好友之间先加上'|'
 		friend_list += n2;
 	}
 
 	memset(sql, 0, sizeof(sql));
-	sprintf(sql, "update %s set friend = '%s';", n1.c_str(), friend_list.c_str());
+	sprintf(sql, "update %s set friend = '%s';", n1.c_str(), friend_list.c_str()); // 更新n1表的friend好友
 	if (mysql_query(mysql, sql) != 0)
 	{
 		cout << "mysql_query error" << endl;
