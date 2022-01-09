@@ -58,10 +58,10 @@ void Server::client_handler(int fd)
 	//使能回调函数
 	bufferevent_enable(bev, EV_READ);
 
-	event_base_dispatch(base);    //监听集合（监听客户端是否有数据发送过来），程序卡在这里，当客户端退出，则往下进行
+	event_base_dispatch(base);    //循环监听集合（监听客户端是否有数据发送过来），程序卡在这里，当客户端退出，则往下进行
 
 	event_base_free(base);
-	cout << "线程退出、释放集合" << endl; // 某一连接的客户端断开时，打印此行
+	cout << "释放集合、线程退出" << endl; // 某一连接的客户端断开时，打印此行
 }
 void Server::read_cb(struct bufferevent* bev, void* ctx)	// 从客户端读取数据回调函数
 {
@@ -191,7 +191,7 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return;
+		return; // 登录失败，立即结束掉登录函数
 	}
 
 	if (!chatdb->my_database_password_correct(val["user"].asString(),
@@ -206,7 +206,7 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return;
+		return; // 登录失败，立即结束掉登录函数
 	}
 
 	Json::Value v;
@@ -216,7 +216,7 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 	User u = { val["user"].asString(), bev };
 	chatlist->online_user->push_back(u);
 
-	//获取好友列表并且返回
+	//获取好友和群聊列表并且返回
 	string friend_list, group_list;
 	chatdb->my_database_get_friend_group(val["user"].asString(), friend_list, group_list);
 
@@ -304,10 +304,12 @@ void  Server::server_add_friend(struct bufferevent* bev, Json::Value val)
 		return;
 	}
 
-	//修改双方的数据库
+	//1修改双方的数据库,此处没有实现好友验证的功能，后期需要优化补充
 	chatdb->my_database_add_new_friend(val["user"].asString(), val["friend"].asString());
 	chatdb->my_database_add_new_friend(val["friend"].asString(), val["user"].asString());
 
+
+	// 2回复执行添加好友的用户，添加好友成功
 	v.clear();
 	v["cmd"] = "add_reply";
 	v["result"] = "success";
@@ -319,6 +321,7 @@ void  Server::server_add_friend(struct bufferevent* bev, Json::Value val)
 		cout << "bufferevent_write" << endl;
 	}
 
+	// 3遍历在线用户，判断添加的好友是否存在，若存在，回复它的bev，你已经被执行添加好友命令的用户小明，添加为好友
 	for (list<User>::iterator it = chatlist->online_user->begin();
 		it != chatlist->online_user->end(); it++)
 	{

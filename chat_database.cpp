@@ -172,7 +172,7 @@ void ChatDataBase::my_database_get_friend_group(string name, string& f, string& 
 	}
 }
 
-bool ChatDataBase::my_database_is_friend(string n1, string n2) // 判断用户2是否用户2的好友
+bool ChatDataBase::my_database_is_friend(string n1, string n2) // 判断用户2是否用户1的好友
 {
 	char sql[128] = { 0 };
 	sprintf(sql, "select friend from %s;", n1.c_str()); // 使用n1表，查n1的friend字符串中是否有n2，反之也可
