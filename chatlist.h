@@ -49,7 +49,7 @@ public:
 	bool info_user_in_group(string, string); // 判断该用户string2是否已经在该群聊string1中
 	void info_group_add_user(string, string); // 将用户string2加入到该群聊string1节点的群成员链表中
 	struct bufferevent* info_get_friend_bev(string);
-	string info_get_group_member(string);
+	string info_get_group_member(string);	  // 获取群聊string2的群成员，返回给string1
 	void info_add_new_group(string, string); // 将新建群聊（群名为string1，群成员为string2）加入到群信息链表中
 };
 

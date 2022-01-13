@@ -120,6 +120,7 @@ struct bufferevent* ChatInfo::info_get_friend_bev(string name)
 	return NULL;
 }
 
+// 获取群聊group的群成员，返回给string1
 string ChatInfo::info_get_group_member(string group)
 {
 	string member;

@@ -444,7 +444,7 @@ void Server::server_add_group(struct bufferevent* bev, Json::Value val)
 // 私聊
 void Server::server_private_chat(struct bufferevent* bev, Json::Value val)
 {
-	// 首先判断好友是否存在————遍历在线用户链表，获得其缓存区对象，
+	// 首先判断好友是否在线————遍历在线用户链表，获得其缓存区对象，
 	struct bufferevent* to_bev = chatlist->info_get_friend_bev(val["user_to"].asString());
 	if (NULL == to_bev) // 说明好友不在线
 	{
@@ -468,7 +468,7 @@ void Server::server_private_chat(struct bufferevent* bev, Json::Value val)
 	}
 
 	Json::Value v;
-	v["cmd"] = "private_chat_reply";
+	v["cmd"] = "private_chat_reply"; // 回复发送方，私聊成功
 	v["result"] = "success";
 
 	s = Json::FastWriter().write(v);
@@ -478,14 +478,18 @@ void Server::server_private_chat(struct bufferevent* bev, Json::Value val)
 	}
 }
 
+// 群聊
 void Server::server_group_chat(struct bufferevent* bev, Json::Value val)
 {
+	// 遍历群聊信息链表找到该群聊
 	for (list<Group>::iterator it = chatlist->group_info->begin(); it != chatlist->group_info->end(); it++)
 	{
 		if (val["group"].asString() == it->name)
 		{
+			// 遍历该群聊的群成员链表（包括自己）
 			for (list<GroupUser>::iterator i = it->l->begin(); i != it->l->end(); i++)
 			{
+				// 获取在线群成员的缓存区对象，转发发送方的bev
 				struct bufferevent* to_bev = chatlist->info_get_friend_bev(i->name);
 				if (to_bev != NULL)
 				{
@@ -501,7 +505,7 @@ void Server::server_group_chat(struct bufferevent* bev, Json::Value val)
 
 	Json::Value v;
 	v["cmd"] = "group_chat_reply";
-	v["result"] = "success";
+	v["result"] = "success"; // 回复发送方用户，群聊发送成功
 
 	string s = Json::FastWriter().write(v);
 	if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
@@ -510,6 +514,7 @@ void Server::server_group_chat(struct bufferevent* bev, Json::Value val)
 	}
 }
 
+// 获取某个群聊成员，并返回给该群聊
 void Server::server_get_group_member(struct bufferevent* bev, Json::Value val)
 {
 	string member = chatlist->info_get_group_member(val["group"].asString());
@@ -517,7 +522,7 @@ void Server::server_get_group_member(struct bufferevent* bev, Json::Value val)
 	Json::Value v;
 	v["cmd"] = "get_group_member_reply";
 	v["member"] = member;
-	v["group"] = val["group"];
+	v["group"] = val["group"];// 返回给该群聊
 
 	string s = Json::FastWriter().write(v);
 	if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
@@ -527,29 +532,30 @@ void Server::server_get_group_member(struct bufferevent* bev, Json::Value val)
 
 }
 
+// 用户下线
 void Server::server_user_offline(struct bufferevent* bev, Json::Value val)
 {
-	//从链表中删除用户
+	//从用户在线链表中删除该用户
 	for (list<User>::iterator it = chatlist->online_user->begin();
 		it != chatlist->online_user->end(); it++)
 	{
 		if (it->name == val["user"].asString())
 		{
-			chatlist->online_user->erase(it);
+			chatlist->online_user->erase(it); // 在线用户链表，删除该用户的节点
 			break;
 		}
 	}
 
 	chatdb->my_database_connect("user");
 
-	//获取好友列表并且返回
+	//获取好友，群聊列表并且返回给friend_list, group_list，参数是引用方式传递
 	string friend_list, group_list;
 	string name, s;
 	Json::Value v;
-
+	
 	chatdb->my_database_get_friend_group(val["user"].asString(), friend_list, group_list);
 
-	//向好友发送下线提醒
+	//向在线好友，发送该用户的下线提醒
 	int start = 0, end = 0, flag = 1;
 	while (flag)
 	{
@@ -584,6 +590,7 @@ void Server::server_user_offline(struct bufferevent* bev, Json::Value val)
 
 	chatdb->my_database_disconnect();
 }
+
 
 void Server::send_file_handler(int length, int port, int* f_fd, int* t_fd)
 {
