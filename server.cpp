@@ -346,12 +346,12 @@ void Server::server_create_group(struct bufferevent* bev, Json::Value val)
 {
 	chatdb->my_database_connect("chatgroup");
 
-	//判断群是否存在
+	//判断群是否已经存在
 	if (chatdb->my_database_group_exist(val["group"].asString()))
 	{
 		Json::Value v;
 		v["cmd"] = "create_group_reply";
-		v["result"] = "group_exist";
+		v["result"] = "group_exist"; // 已经存在
 
 		string s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
@@ -366,11 +366,12 @@ void Server::server_create_group(struct bufferevent* bev, Json::Value val)
 	chatdb->my_database_disconnect();
 
 	chatdb->my_database_connect("user");
-	//修改数据库个人信息
+	//在`user`中，修改创建该群聊用户的群聊字符串
 	chatdb->my_database_user_add_group(val["user"].asString(), val["group"].asString());
-	//修改群链表
+	// 将新建群聊（包括群名和群成员即群主）加入到群信息链表中
 	chatlist->info_add_new_group(val["group"].asString(), val["user"].asString());
 
+	// 回复客户端用户，群聊创建成功
 	Json::Value value;
 	value["cmd"] = "create_group_reply";
 	value["result"] = "success";
@@ -383,6 +384,7 @@ void Server::server_create_group(struct bufferevent* bev, Json::Value val)
 	}
 }
 
+// 用户添加群聊
 void Server::server_add_group(struct bufferevent* bev, Json::Value val)
 {
 	//判断群是否存在
@@ -390,46 +392,46 @@ void Server::server_add_group(struct bufferevent* bev, Json::Value val)
 	{
 		Json::Value v;
 		v["cmd"] = "add_group_reply";
-		v["result"] = "group_not_exist";
+		v["result"] = "group_not_exist"; // 回复客户端用户，你要添加的群聊不存在
 
 		string s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return;
+		return; // 结束
 	}
 
-	//判断用户是否在群里
+	//判断用户是否已经在该群聊里，此时使用群聊信息链表，访问速度相比于数据库更快
 	if (chatlist->info_user_in_group(val["group"].asString(), val["user"].asString()))
 	{
 		Json::Value v;
 		v["cmd"] = "add_group_reply";
-		v["result"] = "user_in_group";
+		v["result"] = "user_in_group"; // 回复客户端用户，你已经存在于该群聊中
 
 		string s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return;
+		return; // 结束
 	}
 
 	//修改数据库（用户表 群表）
 	chatdb->my_database_connect("user");
-	chatdb->my_database_user_add_group(val["user"].asString(), val["group"].asString());
+	chatdb->my_database_user_add_group(val["user"].asString(), val["group"].asString());-
 	chatdb->my_database_disconnect();
 
 	chatdb->my_database_connect("chatgroup");
 	chatdb->my_database_group_add_user(val["group"].asString(), val["user"].asString());
 	chatdb->my_database_disconnect();
 
-	//修改链表
+	//修改群聊信息链表，将该用户加入到该群聊节点的群成员链表中
 	chatlist->info_group_add_user(val["group"].asString(), val["user"].asString());
 
 	Json::Value v;
 	v["cmd"] = "add_group_reply";
-	v["result"] = "success";
+	v["result"] = "success"; // 回复客户端用户，添加群聊成功
 	v["group"] = val["group"];
 
 	string s = Json::FastWriter().write(v);
@@ -439,10 +441,12 @@ void Server::server_add_group(struct bufferevent* bev, Json::Value val)
 	}
 }
 
+// 私聊
 void Server::server_private_chat(struct bufferevent* bev, Json::Value val)
 {
+	// 首先判断好友是否存在————遍历在线用户链表，获得其缓存区对象，
 	struct bufferevent* to_bev = chatlist->info_get_friend_bev(val["user_to"].asString());
-	if (NULL == to_bev)
+	if (NULL == to_bev) // 说明好友不在线
 	{
 		Json::Value v;
 		v["cmd"] = "private_chat_reply";
@@ -453,9 +457,10 @@ void Server::server_private_chat(struct bufferevent* bev, Json::Value val)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return;
+		return; // 结束
 	}
 
+	// 将用户缓存区对象bev中的内容val转换为字符串s，再转发给好友的缓存区对象to_bev
 	string s = Json::FastWriter().write(val);
 	if (bufferevent_write(to_bev, s.c_str(), strlen(s.c_str())) < 0)
 	{

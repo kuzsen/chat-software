@@ -26,10 +26,10 @@ public:
 	bool my_database_is_friend(string, string);					   // 判断用户2是否用户2的好友，添加好友功能时需要提前判断一下
 	void my_database_get_friend_group(string, string&, string&);   // //获取某用户string1的好友和群聊列表，分别存储在string2，string3中，引用方式传递
 	void my_database_add_new_friend(string, string);			   // 将用户2加入到用户1表的friend好友字符串中
-	bool my_database_group_exist(string);
-	void my_database_add_new_group(string, string);
-	void my_database_user_add_group(string, string);
-	void my_database_group_add_user(string, string);
+	bool my_database_group_exist(string);						   // 创建、添加群聊时，提前判断该群聊是否存在
+	void my_database_add_new_group(string, string);				   // 在`chatgroup`中创建该群聊，初始化群聊名，群主，群成员信息
+	void my_database_user_add_group(string, string);			   // 在`user`中，将群聊string2加入到用户string1的群聊字符串中
+	void my_database_group_add_user(string, string);			   // 在`chatgroup`数据库中，将用户string2加入到群聊string1的群成员字符串中
 	void my_database_disconnect();								   // 断开当前连接的数据库
 };
 

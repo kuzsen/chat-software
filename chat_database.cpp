@@ -245,7 +245,8 @@ void ChatDataBase::my_database_add_new_friend(string n1, string n2) // ½«ÓÃ»§n2¼
 	}
 }
 
-bool ChatDataBase::my_database_group_exist(string group_name)
+// ´´½¨¡¢Ìí¼ÓÈºÁÄÊ±£¬ÌáÇ°ÅĞ¶Ï¸ÃÈºÁÄÊÇ·ñ´æÔÚ
+bool ChatDataBase::my_database_group_exist(string group_name) 
 {
 	char sql[128] = { 0 };
 	sprintf(sql, "show tables like '%s';", group_name.c_str());
@@ -266,6 +267,7 @@ bool ChatDataBase::my_database_group_exist(string group_name)
 	}
 }
 
+// ÔÚ`chatgroup`ÖĞ´´½¨¸ÃÈºÁÄ£¬³õÊ¼»¯ÈºÁÄÃû£¬ÈºÖ÷£¬Èº³ÉÔ±ĞÅÏ¢
 void ChatDataBase::my_database_add_new_group(string group_name, string owner)
 {
 	char sql[128] = { 0 };
@@ -282,7 +284,7 @@ void ChatDataBase::my_database_add_new_group(string group_name, string owner)
 		cout << "mysql_query error" << endl;
 	}
 }
-
+// ÔÚ`user`ÖĞ£¬½«ÈºÁÄstring2¼ÓÈëµ½ÓÃ»§string1µÄÈºÁÄ×Ö·û´®ÖĞ
 void ChatDataBase::my_database_user_add_group(string user_name, string group_name)
 {
 	char sql[1024] = { 0 };
@@ -295,19 +297,19 @@ void ChatDataBase::my_database_user_add_group(string user_name, string group_nam
 	string all_group;
 	MYSQL_RES* res = mysql_store_result(mysql);
 	MYSQL_ROW row = mysql_fetch_row(res);
-	if (row[0] != NULL)
+	if (row[0] != NULL) // Ô­À´ÈºÁÄ×Ö·û´®²»Îª¿Õ£¬ÔÚÄ©Î²¼ÓÉÏ"|group_name"
 	{
 		all_group += row[0];
 		all_group += "|";
 		all_group += group_name;
 	}
-	else
+	else //Ô­À´ÈºÁÄ×Ö·û´®Îª¿Õ£¬¸ÃÈºÁÄÎªµÚÒ»¸öÈºÁÄ£¬Ö±½Ó¼ÓÉÏ
 	{
 		all_group += group_name;
 	}
 
 	memset(sql, 0, sizeof(sql));
-	sprintf(sql, "update %s set chatgroup = '%s';", user_name.c_str(), all_group.c_str());
+	sprintf(sql, "update %s set chatgroup = '%s';", user_name.c_str(), all_group.c_str()); // ¸üĞÂchatgroup
 	if (mysql_query(mysql, sql) != 0)
 	{
 		cout << "mysql_query error" << endl;

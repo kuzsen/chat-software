@@ -73,13 +73,15 @@ bool ChatInfo::info_group_exist(string group_name)
 	return false;
 }
 
+// 判断用户是否已经在该群聊里
 bool ChatInfo::info_user_in_group(string group_name, string user_name)
 {
 	for (list<Group>::iterator it = group_info->begin(); it != group_info->end(); it++)
 	{
-		if (it->name == group_name)
+		if (it->name == group_name) // 找到该群聊
 		{
-			for (list<GroupUser>::iterator i = it->l->begin(); i != it->l->end(); i++)
+			// 遍历该群聊的群成员链表，与该用户姓名一一比对
+			for (list<GroupUser>::iterator i = it->l->begin(); i != it->l->end(); i++) 
 			{
 				if (i->name == user_name)
 				{
@@ -92,13 +94,14 @@ bool ChatInfo::info_user_in_group(string group_name, string user_name)
 	return false;
 }
 
+// 将用户string2加入到该群聊节点的群成员链表中
 void ChatInfo::info_group_add_user(string group_name, string user_name)
 {
 	for (list<Group>::iterator it = group_info->begin(); it != group_info->end(); it++)
 	{
 		if (it->name == group_name)
 		{
-			GroupUser u;
+			GroupUser u; // 新建一个群成员节点
 			u.name = user_name;
 			it->l->push_back(u);
 		}
@@ -134,14 +137,15 @@ string ChatInfo::info_get_group_member(string group)
 	return member;
 }
 
+// 将新建群聊（群名为string1，群成员为string2）加入到群信息链表中
 void ChatInfo::info_add_new_group(string group_name, string user_name)
 {
-	Group g;
+	Group g; // 群聊类节点
 	g.name = group_name;
-	g.l = new list<GroupUser>;
-	group_info->push_back(g);
+	g.l = new list<GroupUser>; // 群成员链表
+	group_info->push_back(g); // 将该新建群聊节点加入群信息链表中
 
-	GroupUser u;
+	GroupUser u; 
 	u.name = user_name;
-	g.l->push_back(u);
+	g.l->push_back(u); // 将群主加到群成员链表中
 }
