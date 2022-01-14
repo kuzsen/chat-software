@@ -16,3 +16,40 @@
 如果已经是好友，服务器回复：{"cmd":"add_reply", "result":"already_friend"};
 添加成功，服务器回复自己：{"cmd":"add_reply", "result":"success", "friend":"小华"};
 添加成功，回复对方：{"cmd":"add_friend_reply", "result":"小明"};
+
+4、创建群聊
+客户端发送：{"cmd":"create_group", "user":"小明", "group":"学习"};
+如果群已经存在，回复客户端 {"cmd":"create_group_reply", "result":"group_exist"};
+如果群不存在，回复客户端 {"cmd":"create_group_reply", "result":"success","group":"学习"};
+
+5、添加群
+客户端发送：{"cmd":"add_group", "user":"小明", "group":"学习"};
+如果群不存在，服务器回复：{"cmd":"add_group_reply", "result":"group_not_exist"};
+如果用户已经在群里里面：{"cmd":"add_group_reply", "result":"user_in_group"};
+添加成功，服务器回复：{"cmd":"add_group_reply", "result":"success","group":"学习"};
+
+6、私聊
+客户端发送：{"cmd":"private_chat","user_from":"小明","user_to":"小花","text":"hello"};
+如果对方不在线：{"cmd":"private_chat_reply","result":"offline"};
+如果对方在线，服务器转发 ：同上
+如果对方在线，服务器回复：{"cmd":"private_chat_reply","result":"success"};
+
+7、群聊
+客户端发送：{"cmd":"group_chat","user":"小明","group":"交流群","text":"hello"}
+服务器转发：{"cmd":"group_chat","user":"小明","group":"交流群","text":"hello"}
+服务器回复：{"cmd":"group_chat_reply", "result":"success"}
+
+8、获取群成员
+客户端发送：{"cmd":"get_group_member","group":"交流群"};
+服务器回复：{"cmd":"get_group_member_reply","member":"小李|小张", "group":"交流群"}
+
+9、用户下线
+客户端发送：{"cmd":"offline","user":"小明"};
+服务器回复所有好友：{"cmd":"friend_offline","friend":"小明"};
+
+10、文件传输
+客户端发送：{"cmd":"send_file","from_user":"小明", "to_user":"小李","length":"10000", "filename":"xxx.txt"};
+如果对方不在线，服务器回复：{"cmd":"send_file_reply","result":"offline"};
+服务器返回端口号给发送客户端：{"cmd":"send_file_port_reply","port":8080, "length":"10000", "filename":"xx.txt"};
+服务器返回端口号给接收客户端：{"cmd":"recv_file_port_reply","port":8080, "length":"10000", "filename":"xx.txt"};
+如果连接文件服务器超时，返回客户端 {"cmd":"send_file_reply", "result":"timeout"};

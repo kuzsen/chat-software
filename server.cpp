@@ -42,6 +42,8 @@ void Server::listener_cb (struct evconnlistener* listener, evutil_socket_t fd, s
 	thread client_thread(client_handler, fd);	// #include<thread>线程类头文件
 	client_thread.detach();    //线程分离，当线程运行结束后，自动释放资源
 };
+
+// 某客户端的工作线程
 void Server::client_handler(int fd)
 {
 	//创建某一客户端事件集合
@@ -82,7 +84,7 @@ void Server::read_cb(struct bufferevent* bev, void* ctx)	// 从客户端读取数据回调
 	Json::FastWriter writer;   //将服务器返回给客户端的数据（将内存中的Value对象，转换成JSON文档/）封装json对象，输出到文件或者是字符串中，便于发送给客户端
 	Json::Value val;
 
-	if (!reader.parse(buf, val))    //把客户端输入的满足JSON规则的字符串转换成 json 对象，并保存在val（）中
+	if (!reader.parse(buf, val))    //parse把客户端输入的满足JSON规则的字符串转换成 json 对象，并保存在val（）中
 	{
 		cout << "服务器解析数据失败" << endl;
 	}
@@ -591,10 +593,123 @@ void Server::server_user_offline(struct bufferevent* bev, Json::Value val)
 	chatdb->my_database_disconnect();
 }
 
+// 发送文件
+void Server::server_send_file(struct bufferevent* bev, Json::Value val)
+{
+	Json::Value v;
+	string s;
 
+	//判断对方（文件接收方）是否在线
+	struct bufferevent* to_bev = chatlist->info_get_friend_bev(val["to_user"].asString());
+	if (NULL == to_bev)
+	{
+		v["cmd"] = "send_file_reply";
+		v["result"] = "offline"; // 回复发送方，接收方不在线
+		s = Json::FastWriter().write(v);
+		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
+		{
+			cout << "bufferevent_write" << endl;
+		}
+		return; // 结束
+	}
+
+	//启动新线程，创建文件服务器，处理该文件传输任务（不影响聊天等功能）
+	int port = 8080; // port为端口号，实际上应该随机生成一个系统中未使用的port，当多对客户端之间传输数据的时候会创建多个文件服务器，显然不能共用一个端口号，会发生冲突，此处仅仅是为了简化
+	int from_fd = 0, to_fd = 0; // 引用方式获得发送方客户端和接收方客户端与文件服务器之间的fd，不同于客户端与聊天服务器之间的fd，后面将会根据文件服务器的fd是否被修改，判断是否有客户端向其发起连接
+	thread send_file_thread(send_file_handler, val["length"].asInt(), port, &from_fd, &to_fd); // length为文件大小,asInt转换为整形
+	send_file_thread.detach(); // 传输完成后，线程分离，释放资源
+
+	// 将文件服务器端口号返回给发送客户端，发送客户端根据port向文件服务器发起连接，
+	v.clear();
+	v["cmd"] = "send_file_port_reply";
+	v["port"] = port; // 
+	v["filename"] = val["filename"];
+	v["length"] = val["length"];
+	s = Json::FastWriter().write(v);
+
+	//*********************此处视频中还未讲到
+	////if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0) // bufferevent_write有发送容量4KB限制，且如果不满足json的字段发送，服务器连续读取，容易出现分包、粘包问题
+	if (send(bev->ev_read.ev_fd, s.c_str(), strlen(s.c_str()), 0) < 0) // send函数，向文件服务器发送文件数据，发送数据无容量限制，将文件当作字符串直接发送（而不是封装json格式）
+	{
+		cout << "bufferevent_write" << endl;
+	}
+
+	int count = 0; // 等待时间
+	while (from_fd <= 0) // 先判断发送客户端连接文件服务器是否成功
+	{
+		// 如果某一时刻，发送客户端连接上了文件服务器，即send_file_handler中的accept()执行成功，则from_fd被修改，退出while
+		count++; 
+		usleep(100000); // 需要包含头文件——usleep() 与sleep()类似,用于延迟挂起进程。进程被挂起放到reday queue,设置每次挂起100000微秒 = 100毫秒
+		if (count == 100) // 100 * 100 = 10000毫秒 = 10秒，即等待10秒之后，from_fd仍然<=0，说明仍未连接成功，判定为连接超时，返回发送客户端连接文件服务器超时
+		{
+			pthread_cancel(send_file_thread.native_handle());   //取消文件服务器所在的线程，native_handle()函数————获得线程号
+			v.clear();
+			v["cmd"] = "send_file_reply";
+			v["result"] = "timeout"; // 连接文件服务器超时
+			s = Json::FastWriter().write(v);
+			if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0) // bev
+			{
+				cout << "bufferevent_write" << endl;
+			}
+			return; // 结束
+		}
+	}
+	/*至此，发送客户端连接服务器成功，接下来再判断接收客户端是否与文件服务器连接成功 */
+
+	//将文件服务器端口号，返回给接收客户端
+	v.clear();
+	v["cmd"] = "recv_file_port_reply";
+	v["port"] = port;
+	v["filename"] = val["filename"];
+	v["length"] = val["length"];
+	s = Json::FastWriter().write(v);
+
+	//if (bufferevent_write(to_bev, s.c_str(), strlen(s.c_str())) < 0)
+	if (send(to_bev->ev_read.ev_fd, s.c_str(), strlen(s.c_str()), 0) < 0)
+	{
+		cout << "bufferevent_write" << endl;
+	}
+
+	count = 0;
+	while (to_fd <= 0) // 判断接收客户端连接文件服务器是否成功，同上
+	{
+		// 如果某一时刻，接收客户端连接上了文件服务器，即send_file_handler中的accept()执行成功，则to_fd被修改，退出while
+		count++;
+		usleep(100000);
+		if (count == 100)
+		{
+			pthread_cancel(send_file_thread.native_handle());   //取消线程
+			v.clear();
+			v["cmd"] = "send_file_reply";
+			v["result"] = "timeout";
+			s = Json::FastWriter().write(v);
+
+			if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0) // 也是回复发送客户端，因为是文件服务器分别与两个客户端连接，不管哪个连接超时，都是发送文件失败，与接收客户端没有关系，只用回复发送客户端失败的原因是：连接文件服务器超时即可
+			{
+				cout << "bufferevent_write" << endl;
+			}
+		}
+	}
+	/*至此，接收客户端也与文件服务器连接成功，接下来文件服务器一边从*f_fd接收，一边向*t_fd发送，即执行文件传输工作 */
+}
+
+// 文件传输服务器
 void Server::send_file_handler(int length, int port, int* f_fd, int* t_fd)
 {
+	/*
+	Socket原理讲解————非常号的文章
+	https://blog.csdn.net/pashanhu6402/article/details/96428887?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164214549216780269869952%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=164214549216780269869952&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-96428887.pc_search_insert_ulrmf&utm_term=socket&spm=1018.2226.3001.4187
+	*/
+
+
+	// 创建一个socket描述符/字（socket descriptor），它唯一标识一个socket。这个socket描述字跟文件描述字一样，后续的操作都有用到它，把它作为参数，通过它来进行一些读写操作
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	/*
+		AF_INET，协议族，通信中必须采用对应的地址，如AF_INET决定了要用ipv4地址（32位的）与端口号（16位的）的组合
+		SOCK_STREAM socket类型，tcp基于流
+		protocol默认为0，协议，当protocol为0时，会自动选择type类型对应的默认协议
+	
+	*/
 	if (-1 == sockfd)
 	{
 		return;
@@ -615,123 +730,50 @@ void Server::send_file_handler(int length, int port, int* f_fd, int* t_fd)
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(port);
 	server_addr.sin_addr.s_addr = inet_addr(IP);
-	bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+	bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)); // bind()函数把一个地址族中的特定地址赋给socket
 	listen(sockfd, 10);
 
+	/*
+	accept()函数
+	TCP客户端依次调用socket()、connect()之后就想TCP服务器发送了一个连接请求。TCP服务器监听到这个请求之后，就会调用accept()函数取接收请求，这样连接就建立好了。之后就可以开始网络I/O操作了，即类同于普通文件的读写I/O操作。
+
+	*/
 	int len = sizeof(client_addr);
-	//接受发送客户端的连接请求
-	*f_fd = accept(sockfd, (struct sockaddr*)&client_addr, (socklen_t*)&len);
+	//接受发送客户端的连接请求，如果连接成功，*f_fd会被修改（传入时为0），可在server_send_file函数中判断发送客户端是否与该文件服务器连接成功
+	*f_fd = accept(sockfd, (struct sockaddr*)&client_addr, (socklen_t*)&len); // (struct sockaddr*)强制类型转换，&取地址，(socklen_t*)强制类型转换（C不用，C++用）
 	//接受接收客户端的连接请求
 	*t_fd = accept(sockfd, (struct sockaddr*)&client_addr, (socklen_t*)&len);
 
-	char buf[MAXSIZE] = { 0 };
+
+	// 文件服务器一边从*f_fd接收，一边向*t_fd发送
+	char buf[MAXSIZE] = { 0 }; // MAXSIZE = 4096，每次处理（接收或发送）4096个字节=4K 
 	size_t size, sum = 0;
-	while (1)
+	while (1) 
 	{
-		size = recv(*f_fd, buf, MAXSIZE, 0);
-		if (size <= 0 || size > MAXSIZE)
-		{
-			break;
-		}
-		sum += size;
-		send(*t_fd, buf, size, 0);
-		if (sum >= length)
-		{
-			break;
-		}
-		memset(buf, 0, MAXSIZE);
-	}
+		/*
+		https://blog.csdn.net/yu_yuan_1314/article/details/9766137?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164215100316780357285801%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=164215100316780357285801&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduend~default-2-9766137.pc_search_insert_ulrmf&utm_term=recv%E5%92%8Csend&spm=1018.2226.3001.4187
+		Socket中recv()与send()函数详解
+	    ssize_t recv(int sockfd, void *buf, size_t len, int flags);
+		ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+		*/
 
-	close(*f_fd);
+		size = recv(*f_fd, buf, MAXSIZE, 0); // 每次接收大小，放在buf字符数组中
+		if (size <= 0 || size > MAXSIZE) // 如果单次接收数据异常，说明读取完毕，退出读写while循环
+		{
+			break;
+		}
+		sum += size; // 累加每次读取大小
+		send(*t_fd, buf, size, 0); // 将每次接收到的实际大小为size，存储在buf字符数组中的数据发送出去
+		if (sum >= length) // 当前传输文件大小sum >= 文件本来的大小，发送结束，退出循环 
+		{
+			break;
+		}
+		memset(buf, 0, MAXSIZE); // 循环中使用数组，每次读取发送结束后，清空buf字符数组，便于存储下次读取到的数据
+	}
+	// 至此，本次文件传输工作完成，关闭发送与接收客户端与文件服务器之间的描述字，
+	close(*f_fd); 
 	close(*t_fd);
-	close(sockfd);
-}
+	close(sockfd); // 关闭该文件服务器（注意：close操作只是使相应socket描述字的引用计数-1，只有当引用计数为0的时候，才会触发TCP客户端向服务器发送终止连接请求）
 
-void Server::server_send_file(struct bufferevent* bev, Json::Value val)
-{
-	Json::Value v;
-	string s;
-
-	//判断对方是否在线
-	struct bufferevent* to_bev = chatlist->info_get_friend_bev(val["to_user"].asString());
-	if (NULL == to_bev)
-	{
-		v["cmd"] = "send_file_reply";
-		v["result"] = "offline";
-		s = Json::FastWriter().write(v);
-		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
-		{
-			cout << "bufferevent_write" << endl;
-		}
-		return;
-	}
-
-	//启动新线程，创建文件服务器
-	int port = 8080, from_fd = 0, to_fd = 0;
-	thread send_file_thread(send_file_handler, val["length"].asInt(), port, &from_fd, &to_fd);
-	send_file_thread.detach();
-
-	v.clear();
-	v["cmd"] = "send_file_port_reply";
-	v["port"] = port;
-	v["filename"] = val["filename"];
-	v["length"] = val["length"];
-	s = Json::FastWriter().write(v);
-	//if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
-	if (send(bev->ev_read.ev_fd, s.c_str(), strlen(s.c_str()), 0) < 0)
-	{
-		cout << "bufferevent_write" << endl;
-	}
-
-	int count = 0;
-	while (from_fd <= 0)
-	{
-		count++;
-		usleep(100000);
-		if (count == 100)
-		{
-			pthread_cancel(send_file_thread.native_handle());   //取消线程
-			v.clear();
-			v["cmd"] = "send_file_reply";
-			v["result"] = "timeout";
-			s = Json::FastWriter().write(v);
-			if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
-			{
-				cout << "bufferevent_write" << endl;
-			}
-			return;
-		}
-	}
-
-	//返回端口号给接收客户端
-	v.clear();
-	v["cmd"] = "recv_file_port_reply";
-	v["port"] = port;
-	v["filename"] = val["filename"];
-	v["length"] = val["length"];
-	s = Json::FastWriter().write(v);
-	//if (bufferevent_write(to_bev, s.c_str(), strlen(s.c_str())) < 0)
-	if (send(to_bev->ev_read.ev_fd, s.c_str(), strlen(s.c_str()), 0) < 0)
-	{
-		cout << "bufferevent_write" << endl;
-	}
-
-	count = 0;
-	while (to_fd <= 0)
-	{
-		count++;
-		usleep(100000);
-		if (count == 100)
-		{
-			pthread_cancel(send_file_thread.native_handle());   //取消线程
-			v.clear();
-			v["cmd"] = "send_file_reply";
-			v["result"] = "timeout";
-			s = Json::FastWriter().write(v);
-			if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
-			{
-				cout << "bufferevent_write" << endl;
-			}
-		}
-	}
+	/*至此，send_file_thread函数执行结束，接下来在server_send_file函数中，执行下一个线程分离函数send_file_thread.detach()*/
 }
