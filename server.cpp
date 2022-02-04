@@ -623,7 +623,7 @@ void Server::server_send_file(struct bufferevent* bev, Json::Value val)
 	v.clear();
 	v["cmd"] = "send_file_port_reply";
 	v["port"] = port; // 
-	v["filename"] = val["filename"];
+	v["filename"] = val["filename"]; // 便于qt客户端实现文件操作
 	v["length"] = val["length"];
 	s = Json::FastWriter().write(v);
 
