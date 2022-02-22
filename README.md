@@ -1,4 +1,4 @@
-## chat_soft
+## chat-software
 基于阿里云服务器+libevent+qt+mysql+Json等实现仿qq聊天软件，主要功能包括注册、登录、添加好友、聊天（私聊和群聊）、文件传输、建群、加群、好友上下线提醒。
 
 主要分为两大部分：
@@ -222,6 +222,7 @@ server_register(bev, val); // 参数1为服务器与该客户端之间的缓存�
       ```
 
 ## 2. chat_client
+未完待续......
 
 
 
