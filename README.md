@@ -26,7 +26,7 @@ chatgroup存储群聊信息，为每个群聊创建一张表名为群聊名的�
 ![](D:\MyCode_C++\C++资料\chat_server板书+接口文档\数据库.png)
 
 创建online_user和group_info两个链表————————链表访问速度比数据库快，且方便后续功能的实现
-其中，online_user存储在线用户的信息，节点为<user>，包括在线用户名和在线用户的缓冲区对象bev
+其中，online_user存储在线用户的信息，节点为<user>，包括在线用户名和在线用户的缓冲区对象bev；
 group_info存储群聊信息，节点为<Group>，包括群聊名称和群成员链表，其中群成员链表的节点为<GroupUser>，只包含群成员姓名
 
 ![](D:\MyCode_C++\C++资料\chat_server板书+接口文档\链表.png)

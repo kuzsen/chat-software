@@ -2,7 +2,7 @@
 
 ChatInfo::ChatInfo()
 {
-	online_user = new list<User>;
+	online_user = new list<User>; // ≥ı ºªØ¡¥±Ì
 
 	group_info = new list<Group>;
 
