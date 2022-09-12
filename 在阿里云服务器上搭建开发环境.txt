@@ -1,4 +1,4 @@
-liunx系统为Ubuntu，修改主机名iZ2vc5mxaf6rjabll9dmt2Z为liuzhensen————主要是为了看着舒服
+liunx系统为Ubuntu，修改主机名iZ2vc5mxaf6rjabll9dmt2Z为liuzhensen————主要是为了看着舒服。
 	root@iZ2vc5mxaf6rjabll9dmt2Z:~# hostnamectl set-hostname liuzhensen
 阿里云服务器公网ip
 	47.108.225.245

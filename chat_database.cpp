@@ -340,6 +340,7 @@ void ChatDataBase::my_database_group_add_user(string group_name, string user_nam
 	}
 
 	memset(sql, 0, sizeof(sql));
+	// 更新数据库中该群聊的群聊成员字段
 	sprintf(sql, "update %s set member = '%s';", group_name.c_str(), all_member.c_str());
 	if (mysql_query(mysql, sql) != 0)
 	{

@@ -35,7 +35,7 @@ class Server;
 
 class ChatInfo
 {
-	friend class Server;
+	friend class Server; // 声明Server是链表类ChatInfo的友元类，可以访问ChatInfo中的的隐藏信息（包括私有成员和保护成员）。
 private:
 	list<User>* online_user;     //保存所有在线的用户信息————链表形式
 	list<Group>* group_info;     //保存所有群聊信息————链表

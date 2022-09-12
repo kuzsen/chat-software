@@ -191,7 +191,7 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		string s = Json::FastWriter().write(val);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
 		{
-			cout << "bufferevent_write" << endl;
+			cout << "bufferevent_write error" << endl;
 		}
 		return; // 登录失败，立即结束掉登录函数
 	}
@@ -206,7 +206,7 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		string s = Json::FastWriter().write(val);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
 		{
-			cout << "bufferevent_write" << endl;
+			cout << "bufferevent_write error" << endl;
 		}
 		return; // 登录失败，立即结束掉登录函数
 	}
@@ -214,7 +214,7 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 	Json::Value v;
 	string s, name;
 
-	//向链表中添加用户
+	//向在线用户链表中添加该用户
 	User u = { val["user"].asString(), bev };
 	chatlist->online_user->push_back(u);
 
@@ -502,6 +502,7 @@ void Server::server_group_chat(struct bufferevent* bev, Json::Value val)
 					}
 				}
 			}
+			break; // 找到该群聊，就停止遍历
 		}
 	}
 
@@ -516,7 +517,7 @@ void Server::server_group_chat(struct bufferevent* bev, Json::Value val)
 	}
 }
 
-// 获取某个群聊成员，并返回给该群聊
+// 获取某个群聊的所有成员，并返回给该群聊
 void Server::server_get_group_member(struct bufferevent* bev, Json::Value val)
 {
 	string member = chatlist->info_get_group_member(val["group"].asString());
@@ -534,7 +535,7 @@ void Server::server_get_group_member(struct bufferevent* bev, Json::Value val)
 
 }
 
-// 用户下线
+// 用户下线————链表的好处之一，方便处理在任意位置删除操作
 void Server::server_user_offline(struct bufferevent* bev, Json::Value val)
 {
 	//从用户在线链表中删除该用户
@@ -557,7 +558,7 @@ void Server::server_user_offline(struct bufferevent* bev, Json::Value val)
 	
 	chatdb->my_database_get_friend_group(val["user"].asString(), friend_list, group_list);
 
-	//向在线好友，发送该用户的下线提醒
+	// 先获得其所有好友(通过'|'截取好友列表字符串得到某个好友)，与在线好友链表对比，只向在线的好友发送该用户的下线提醒
 	int start = 0, end = 0, flag = 1;
 	while (flag)
 	{

@@ -17,10 +17,10 @@
 #include "chatlist.h"
 using namespace std;
 
-#define IP     "172.19.18.114"
+#define IP     "172.19.18.114" // ÄÚÍø£¿
 #define PORT   8000
 
-#define MAXSIZE  1024 * 1024
+#define MAXSIZE  1024 * 1024 
 
 class Server
 {
