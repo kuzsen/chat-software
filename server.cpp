@@ -628,7 +628,7 @@ void Server::server_send_file(struct bufferevent* bev, Json::Value val)
 	v["length"] = val["length"];
 	s = Json::FastWriter().write(v);
 
-	//*********************此处视频中还未讲到
+	
 	////if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0) // bufferevent_write有发送容量4KB限制，且如果不满足json的字段发送，服务器连续读取，容易出现分包、粘包问题
 	if (send(bev->ev_read.ev_fd, s.c_str(), strlen(s.c_str()), 0) < 0) // send函数，向文件服务器发送文件数据，发送数据无容量限制，将文件当作字符串直接发送（而不是封装json格式）
 	{
@@ -698,7 +698,7 @@ void Server::server_send_file(struct bufferevent* bev, Json::Value val)
 void Server::send_file_handler(int length, int port, int* f_fd, int* t_fd)
 {
 	/*
-	Socket原理讲解————非常号的文章
+	Socket原理讲解
 	https://blog.csdn.net/pashanhu6402/article/details/96428887?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164214549216780269869952%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=164214549216780269869952&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-96428887.pc_search_insert_ulrmf&utm_term=socket&spm=1018.2226.3001.4187
 	*/
 
